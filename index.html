@@ -19,14 +19,17 @@
   <body>
     <ul id="messages"></ul>
     <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-      <button onclick="document.getElementById('fileUpload').click();return false;">Upload</button>
+      <input id="input" autocomplete="off" /><button data-i18n="form.Send">Send</button>
+      <button data-i18n="form.Upload" onclick="document.getElementById('fileUpload').click();return false;">Upload</button>
     </form>
     <form id="formUpload" action="/upload" method="post" enctype="multipart/form-data" style="display:none">
       <input id="fileUpload" type="file" name="file"/>
       <input type="submit" value="Upload">
     </form>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next/8.1.0/i18next.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-i18next/1.2.0/jquery-i18next.min.js" ></script>
 
     <script>
       var socket = io();
@@ -64,6 +67,69 @@
         item.innerHTML = msg;
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      var multilingual = {
+        en: {
+          translation: {
+            form: {
+              Send: 'Send',
+              Upload: 'Upload'
+            }
+          }
+        },
+        zh: {
+          translation: {
+            form: {
+              Send: '发送',
+              Upload: '上传'
+            }
+          }
+        }
+      };
+
+      function getQueryParameter(key) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(key);
+      }
+
+      var lang = null;
+
+      if(lang == null) {
+        var searchLang = getQueryParameter("lang");
+        if(searchLang != null) {
+          if(searchLang.startsWith("zh")) {
+            lang = "zh";
+          }
+          if(searchLang.startsWith("en")) {
+            lang = "en";
+          }
+        }
+      }
+
+      if(lang == null) {
+        var userLang = navigator.language || navigator.userLanguage;
+        if(userLang.startsWith("zh")) {
+          lang = "zh";
+        }
+        else {
+          lang = "en";
+        }
+      }
+
+      // use plugins and options as needed, for options, detail see
+      // http://i18next.com/docs/
+      i18next.init({
+        lng: lang,
+        resources: multilingual
+      }, function(err, t) {
+        // for options see
+        // https://github.com/i18next/jquery-i18next#initialize-the-plugin
+        jqueryI18next.init(i18next, $);
+
+        // start localizing, details:
+        // https://github.com/i18next/jquery-i18next#usage-of-selector-function
+        $('form').localize();
       });
 
     </script>
