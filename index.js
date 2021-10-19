@@ -4,6 +4,8 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 
+var clients = {};
+
 const multer = require('multer')
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -23,12 +25,20 @@ app.get('/', (req, res) => {
 
 app.post('/upload', upload.single('file'), function (req, res, next) {
   res.send(req.file);
-  io.emit('file message', `<a href="uploads/${req.file.filename}" target="_blank">${req.file.originalname}</a>`);
+  io.emit('file message', `${clients[req.ip]}: `
+    + `<a href="uploads/${req.file.filename}" target="_blank">`
+    + `${req.file.originalname}</a>`);
 })
 
 io.on('connection', (socket) => {
+  socket.on('nickname', msg => {
+    var address = socket.handshake.address;
+    clients[address] = msg;
+  });
+
   socket.on('chat message', msg => {
-    io.emit('chat message', msg);
+    var address = socket.handshake.address;
+    io.emit('chat message', `${clients[address]}: ${msg}`);
   });
 });
 

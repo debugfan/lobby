@@ -37,6 +37,9 @@
       var messages = document.getElementById('messages');
       var form = document.getElementById('form');
       var input = document.getElementById('input');
+      var nickname = navigator.platform;
+
+      socket.emit('nickname', nickname);
 
       form.addEventListener('submit', function(e) {
         e.preventDefault();
