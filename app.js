@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const os = require('os');
 const port = process.env.PORT || 3000;
 
 var clients = {};
@@ -38,6 +39,7 @@ io.on('connection', (socket) => {
   socket.on('nickname', msg => {
     var address = socket.handshake.address;
     clients[address] = msg;
+    io.emit('chat message', `${clients[address]}(${address}) joined in`);
   });
 
   socket.on('chat message', msg => {
@@ -47,5 +49,13 @@ io.on('connection', (socket) => {
 });
 
 http.listen(port, () => {
-  console.log(`Socket.IO server running at http://localhost:${port}/`);
+  var ifaces = os.networkInterfaces();
+  console.log(`Socket.IO server running at:`);
+  Object.keys(ifaces).forEach(function (dev) {
+    ifaces[dev].forEach(function (details) {
+      if (details.family === 'IPv4') {
+        console.log('  http://' + details.address + ':' + port);
+      }
+    });
+  });
 });
